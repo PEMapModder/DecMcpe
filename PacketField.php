@@ -20,6 +20,8 @@ class PacketField{
 	private $type;
 	private $size;
 
+//	private $destination, $value;
+
 	public function __construct($message, &$pkSize){
 		$this->message = $message = trim($message);
 		if(preg_match('@^[0-9a-f]+:[ \t]+(([0-9a-f]{4}[ \t]+){1,2})(([a-z]+)(\.([a-z]))?)[ \t]+(.+)$@', $message, $match)){
@@ -30,7 +32,6 @@ class PacketField{
 			$this->modifier = $modifier;
 			$this->args = $args;
 			if($instr === "bl"){
-				$this->valid = true;
 				$types = [
 					["PacketUtil::readString", "string"],
 					["PacketUtil::readUUID", "uuid"],
@@ -39,13 +40,23 @@ class PacketField{
 				foreach($types as list($needle, $type)){
 					if(strpos($message, $needle) !== false){
 						$this->type = $type;
+						$this->valid = true;
+						return;
 					}
 				}
+				if(strpos($message, "RakNet::BitStream::ReadBits") !== false){
+					$this->type = "numeric";
+					$this->size = $pkSize;
+					$this->valid = true;
+				}
 			}
-			if($instr === "mov"){
-				$this->valid = true;
+			if($instr === "movs"){
+				list($dest, $val) = explode(", ", $args);
+//				$this->destination=$dest;$this->value=$val;$this->valid=true;
+				if($dest === "r2"){
+					$pkSize = intval(substr($val, 1));
+				}
 			}
-		}else{
 		}
 	}
 
@@ -58,11 +69,12 @@ class PacketField{
 
 	public function dumpInfo(){
 		return [
-			"instruction" => $this->instr,
-			"modifier" => $this->modifier,
-			"args" => $this->args,
+//			"instruction" => $this->instr,
+//			"modifier" => $this->modifier,
+//			"args" => $this->args,
 			"type" => $this->type,
 			"size" => $this->size,
+//			"destination" => $this->destination, "value" => $this->value,
 		];
 	}
 }
