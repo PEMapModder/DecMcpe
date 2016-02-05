@@ -26,4 +26,11 @@ class Packet{
 	public function __construct($name){
 		$this->name = $name;
 	}
+
+	public function dumpInfo(){
+		return [
+			"id" => $this->idHex,
+			"fields" => array_map(function(PacketField $field){return $field->dumpInfo();},$this->fields),
+		];
+	}
 }

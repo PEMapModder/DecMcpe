@@ -28,7 +28,12 @@ $pkColl = new PacketCollection;
 $is = fopen($SUBJECT, "r");
 while(!feof($is)){
 	$line = rtrim(fgets($is));
-	if(preg_match('/([A-Za-z0-9_]+Packet)::getId\(\)/', $line, $match)){
+	if(strpos($line, "SharedConstants::NetworkProtocolVersion") !== false){
+		$next = trim(fgets($is));
+		if(preg_match('/[0-9a-f]+:[ \t]+([0-9a-f]+)/', $next, $match)){
+			$pkColl->setProtocolVersion(hexdec($match[1]));
+		}
+	}elseif(preg_match('/([A-Za-z0-9_]+Packet)::getId\(\)/', $line, $match)){
 		$name = $match[1];
 		$next = trim(fgets($is));
 		if(preg_match('/[0-9]{4}[ \t]+movs[ \t]+r0, #([0-9]+)/', $next, $match2)){
@@ -39,12 +44,16 @@ while(!feof($is)){
 	}elseif(preg_match('/^[0-9a-f]+ <([A-Za-z0-9_]+Packet)::read\(RakNet::BitStream\*\)>:/', $line, $match)){
 		$pkName = $match[1];
 		$fields = [];
+		$pkSize = 0;
 		while(!feof($is)){
 			$line = rtrim(fgets($is));
 			if(strlen($line) - 2 !== strlen(ltrim($line, " "))){
 				break;
 			}
-			$fields[] = $line;
+			$field = new PacketField($line, $pkSize);
+			if($field->isValid()){
+				$fields[] = $field;
+			}
 		}
 		$pkColl->get($pkName)->fields = $fields;
 	}
