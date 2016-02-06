@@ -33,6 +33,7 @@ class PacketCollection{
 	}
 
 	public function write($file){
+		ksort($this->packets, SORT_NATURAL | SORT_FLAG_CASE);
 		$data = [
 			"protocolVersion" => $this->protocolVersionHex,
 			"packets" => array_map(function (Packet $packet){

@@ -1,3 +1,4 @@
+#!/usr/bin/env php
 <?php
 
 /*
@@ -13,8 +14,9 @@
  * @author PEMapModder
  */
 
-$SUBJECT = "in/mpe.asm";
-$OUTPUT = "out/pkdump.json";
+$opts = getopt("", ["in:", "out:"]);
+$SUBJECT = $opts["in"] ?? "in/mpe.asm";
+$OUTPUT = $opts["out"] ?? "out/pkdump.json";
 
 /** @noinspection PhpUsageOfSilenceOperatorInspection */
 @mkdir(dirname($OUTPUT), 0777, true);
@@ -25,27 +27,39 @@ spl_autoload_register(function ($class){
 
 $pkColl = new PacketCollection;
 
+echo "\rOpening stream to read $SUBJECT";
 $is = fopen($SUBJECT, "r");
+$linesCnt = 0;
 while(!feof($is)){
+	$linesCnt++;
+	echo "\rLine $linesCnt: Reading...";
 	$line = rtrim(fgets($is));
 	if(strpos($line, "SharedConstants::NetworkProtocolVersion") !== false){
+		echo " Detecting protocol version...";
+		$linesCnt++;
 		$next = trim(fgets($is));
 		if(preg_match('/[0-9a-f]+:[ \t]+([0-9a-f]+)/', $next, $match)){
 			$pkColl->setProtocolVersion(hexdec($match[1]));
+			echo " Detected 0x$match[1]";
 		}
 	}elseif(preg_match('/([A-Za-z0-9_]+Packet)::getId\(\)/', $line, $match)){
+		echo " Detecting packet-to-ID declaration...";
 		$name = $match[1];
+		$linesCnt++;
 		$next = trim(fgets($is));
-		if(preg_match('/[0-9]{4}[ \t]+movs[ \t]+r0, #([0-9]+)/', $next, $match2)){
+		if(preg_match('/[0-9a-f]{4}[ \t]+movs[ \t]+r0, #([0-9]+)/', $next, $match2)){
 			$id = hexdec($match2[1]) + 0x8e;
+			printf(" Detected 0x%02x", $id);
 			$pkColl->get($name)->id = $id;
-			$pkColl->get($name)->idHex = sprintf("0x%x", $id);
+			$pkColl->get($name)->idHex = sprintf("0x%02x", $id);
 		}
 	}elseif(preg_match('/^[0-9a-f]+ <([A-Za-z0-9_]+Packet)::read\(RakNet::BitStream\*\)>:/', $line, $match)){
 		$pkName = $match[1];
 		$fields = [];
 		$pkSize = 0;
 		while(!feof($is)){
+			$linesCnt++;
+			echo "\rLine $linesCnt: Reading packet structure...";
 			$line = rtrim(fgets($is));
 			if(strlen($line) - 2 !== strlen(ltrim($line, " "))){
 				break;
@@ -59,4 +73,7 @@ while(!feof($is)){
 	}
 }
 
+echo "\rWriting to $OUTPUT";
 $pkColl->write($OUTPUT);
+echo PHP_EOL;
+exit(0);
