@@ -32,9 +32,10 @@ $is = fopen($SUBJECT, "r");
 $linesCnt = 0;
 while(!feof($is)){
 	$linesCnt++;
-	echo "\rLine $linesCnt: Reading...";
+//	echo "\rLine $linesCnt: Reading...";
 	$line = rtrim(fgets($is));
 	if(strpos($line, "SharedConstants::NetworkProtocolVersion") !== false){
+		echo "\rLine $linesCnt: Reading...";
 		echo " Detecting protocol version...";
 		$linesCnt++;
 		$next = trim(fgets($is));
@@ -43,6 +44,7 @@ while(!feof($is)){
 			echo " Detected 0x$match[1]";
 		}
 	}elseif(preg_match('/([A-Za-z0-9_]+Packet)::getId\(\)/', $line, $match)){
+		echo "\rLine $linesCnt: Reading...";
 		echo " Detecting packet-to-ID declaration...";
 		$name = $match[1];
 		$linesCnt++;
@@ -54,22 +56,27 @@ while(!feof($is)){
 			$pkColl->get($name)->idHex = sprintf("0x%02x", $id);
 		}
 	}elseif(preg_match('/^[0-9a-f]+ <([A-Za-z0-9_]+Packet)::read\(RakNet::BitStream\*\)>:/', $line, $match)){
+		echo "\rLine $linesCnt: Reading...";
 		$pkName = $match[1];
-		$fields = [];
-		$pkSize = 0;
+//		$fields = [];
+//		$pkSize = 0;
+		$pk = $pkColl->get($pkName);
+		$pk->startAnalyze();
 		while(!feof($is)){
 			$linesCnt++;
-			echo "\rLine $linesCnt: Reading packet structure...";
+			echo "\rLine $linesCnt: Reading $pkName packet structure...";
 			$line = rtrim(fgets($is));
 			if(strlen($line) - 2 !== strlen(ltrim($line, " "))){
 				break;
 			}
-			$field = new PacketField($line, $pkSize);
-			if($field->isValid()){
-				$fields[] = $field;
-			}
+//			$field = new PacketField($line, $pkSize);
+//			if($field->isValid()){
+//				$fields[] = $field;
+//			}
+			$pk->analyze($line);
 		}
-		$pkColl->get($pkName)->fields = $fields;
+		$pk->stopAnalyze();
+		echo "\rAnalyzed $pkName; Memory state: " . round(memory_get_usage() / 1024, 2) . " KB", PHP_EOL;
 	}
 }
 
