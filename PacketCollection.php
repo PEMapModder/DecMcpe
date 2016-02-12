@@ -34,11 +34,10 @@ class PacketCollection{
 
 	public function write($file){
 		ksort($this->packets, SORT_NATURAL | SORT_FLAG_CASE);
+		$this->free();
 		$data = [
 			"protocolVersion" => $this->protocolVersionHex,
-			"packets" => array_map(function (Packet $packet){
-				return $packet->dumpInfo();
-			}, $this->packets),
+			"packets" => $this->packets,
 		];
 		file_put_contents($file, json_encode($data, JSON_UNESCAPED_SLASHES | JSON_BIGINT_AS_STRING | JSON_PRETTY_PRINT));
 	}
@@ -63,5 +62,13 @@ class PacketCollection{
 	public function setProtocolVersion($protocolVersion){
 		$this->protocolVersion = $protocolVersion;
 		$this->protocolVersionHex = sprintf("0x%x", $protocolVersion);
+	}
+
+	public function free(){
+		foreach($this->packets as &$packet){
+			if($packet instanceof Packet and $packet->isReady()){
+				$packet = $packet->dumpInfo();
+			}
+		}
 	}
 }

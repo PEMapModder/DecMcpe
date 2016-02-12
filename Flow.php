@@ -89,7 +89,8 @@ class Flow{
 		if(isset($this->packet->instrOffsetIndex[$offset])){
 			$this->current = $this->packet->instrOffsetIndex[$offset];
 			return true;
-		}return false;
+		}
+		return false;
 	}
 
 	public function getFields(){

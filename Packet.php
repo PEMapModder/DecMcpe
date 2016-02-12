@@ -72,7 +72,13 @@ class Packet{
 		}
 
 		$this->fields = $fieldSets;
+		echo "\rFinished analyzing $this->name (memory: " . round(memory_get_usage() / 1024, 2) . " KB)\n";
 		unset($this->instr);
 		gc_collect_cycles();
+		echo "Freed resources (memory: " . round(memory_get_usage() / 1024, 2) . " KB)\n";
+	}
+
+	public function isReady(){
+		return isset($this->id) and isset($this->fields);
 	}
 }

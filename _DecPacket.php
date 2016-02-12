@@ -76,7 +76,8 @@ while(!feof($is)){
 			$pk->analyze($line);
 		}
 		$pk->stopAnalyze();
-		echo "\rAnalyzed $pkName; Memory state: " . round(memory_get_usage() / 1024, 2) . " KB", PHP_EOL;
+		$pkColl->free();
+		echo "\rFreed packet instance (memory: " . round(memory_get_usage() / 1024, 2) . " KB)", PHP_EOL;
 	}
 }
 
