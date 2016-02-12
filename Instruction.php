@@ -28,8 +28,20 @@ class Instruction{
 	public $args;
 
 	public function __construct($line){
+		if(preg_match(/** @lang RegExp */
+			'%([a-f0-9]+):[\t ]+([0-9a-f]{4}( [0-9a-f]{4})?).*; <UNDEFINED>.*$%', $line, $match)
+		){
+			$this->offsetHex = $match[1];
+			$this->offset = hexdec($this->offsetHex);
+			$this->byteCode = $match[2];
+			$this->instr = "undefined";
+			$this->cond = "";
+			$this->args = "";
+			return;
+		}
 		if(!preg_match(/** @lang RegExp */
-			'%([a-f0-9]+):[\t ]+([0-9a-f]{4}( [0-9a-f]{4})?)[\t ]+([a-z]+)(\.([a-z]))?([\t ]+([^;]+)(;.*)?)?$%', $line, $match)){
+			'%([a-f0-9]+):[\t ]+([0-9a-f]{4}( [0-9a-f]{4})?)[\t ]+([a-z]+)(\.([a-z]))?([\t ]+([^;]+)(;.*)?)?$%', $line, $match)
+		){
 			echo $line, PHP_EOL;
 			throw new InvalidArgumentException("Not an instruction");
 		}

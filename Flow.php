@@ -14,15 +14,20 @@
  */
 
 class Flow{
+	private static $childId;
+
 	/** @var Packet */
 	private $packet;
 	private $nextSize;
 	private $current = 0;
 
 	private $fields = [];
+	private $history = [];
 
 	public function __construct(Packet $packet){
 		$this->packet = $packet;
+		self::$childId = 0;
+		$this->id = 0;
 	}
 
 	public function flow(){
@@ -81,12 +86,15 @@ class Flow{
 		if(!$flow->branch($next)){
 			return;
 		}
+		$flow->id = ++self::$childId;
+		echo "\nChild branch #$flow->id from parent #$this->id";
 		$this->packet->flows[] = $flow;
 		$flow->flow();
 	}
 
 	public function branch($offset){
-		if(isset($this->packet->instrOffsetIndex[$offset])){
+		if(isset($this->packet->instrOffsetIndex[$offset]) and !isset($this->history[$offset])){
+			$this->history[$offset] = true;
 			$this->current = $this->packet->instrOffsetIndex[$offset];
 			return true;
 		}
