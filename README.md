@@ -1,4 +1,6 @@
 # DecMcpe
+
+[![Join the chat at https://gitter.im/PEMapModder/DecMcpe](https://badges.gitter.im/PEMapModder/DecMcpe.svg)](https://gitter.im/PEMapModder/DecMcpe?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 My own project that parses an objdump of libminecraftpe.so
 
 How to use
