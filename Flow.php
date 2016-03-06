@@ -82,12 +82,12 @@ class Flow{
 	}
 
 	public function branchIf($next){
+		return;
 		$flow = clone $this;
 		if(!$flow->branch($next)){
 			return;
 		}
 		$flow->id = ++self::$childId;
-		echo "\nChild branch #$flow->id from parent #$this->id";
 		$this->packet->flows[] = $flow;
 		$flow->flow();
 	}
