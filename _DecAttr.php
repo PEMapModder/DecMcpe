@@ -33,10 +33,8 @@ $linesCnt = 0;
 while(!feof($is)){
 	$linesCnt++;
 	$line = rtrim(fgets($is));
-	if(strpos($line, "<Player::registerAttributes()>:")){
-		if(preg_match('%<AttributeInstance::([a-zA-Z0-9_]+).*>:%', $line, $match)){
-			$output["AttributeInstance::" . $match[1]] = true;
-		}
+	if(preg_match('%<AttributeInstance::([a-zA-Z0-9_]+).*>:%', $line, $match)){
+		$output["AttributeInstance::" . $match[1]] = true;
 	}
 }
 file_put_contents($OUTPUT, json_encode(array_keys($output), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_BIGINT_AS_STRING));
